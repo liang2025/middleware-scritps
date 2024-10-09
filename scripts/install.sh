@@ -402,13 +402,13 @@ install_alertmanager() {
 # 显示菜单
 show_menu() {
   echo "请选择要安装的组件（可以使用空格分隔多个选项）："
-  echo "1. Grafana"
-  echo "2. Prometheus"
-  echo "3. Loki"
-  echo "4. Promtail"
-  echo "5. Node Exporter"
-  echo "6. cAdvisor"
-  echo "7. Alertmanager"
+  echo "1. Grafana(监控可视化平台)"
+  echo "2. Prometheus(数据收集)"
+  echo "3. Loki(日志存储)"
+  echo "4. Promtail(日志收集)"
+  echo "5. Node Exporter(监控系统性能)"
+  echo "6. cAdvisor(监控docker性能)"
+  echo "7. Alertmanager(发送告警通知)"
   echo "0. 全部安装"
 }
 
