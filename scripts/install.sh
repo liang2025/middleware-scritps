@@ -159,7 +159,7 @@ scrape_configs:
       refresh_interval: 5s
   relabel_configs:
     - source_labels: ['__meta_docker_container_name']
-      target_label: '$TARGET_LABEL'  #区分开，方便标签查找
+      target_label: '$PROMTAIL_TARGET_LABEL'  #区分开，方便标签查找
 EOF
 }
 
