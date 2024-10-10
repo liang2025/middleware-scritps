@@ -20,10 +20,10 @@
 * docker-compose.yml
   docker脚本文件
   
-2. 执行方式
+# 执行方式
 * sh install.sh
 
-3. 功能使用说明
+# 功能使用说明
 请选择要安装的组件（可以使用空格分隔多个选项）：
 1. Grafana(监控可视化平台)
 2. Prometheus(数据收集)
