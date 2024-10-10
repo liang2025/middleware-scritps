@@ -3,6 +3,7 @@
 * .env
   存放环境变量
   默认变量说明：
+  
   PROMETHEUS_HOST="172.31.40.254"  #prometheus地址
   
   LOKI_HOST="172.31.40.254"  #日志存储系统地址
