@@ -135,7 +135,7 @@ generate_promtail_config() {
 server:
   http_listen_port: 9080
   grpc_listen_port: 0
-				
+
 positions:
   filename: /tmp/positions.yaml
 
