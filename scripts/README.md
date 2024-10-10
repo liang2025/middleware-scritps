@@ -4,9 +4,13 @@
   存放环境变量
   默认变量说明：
   PROMETHEUS_HOST="172.31.40.254"  #prometheus地址
+  
   LOKI_HOST="172.31.40.254"  #日志存储系统地址
+  
   ALERTMANAGER_HOST="172.31.40.254"  #告警系统地址
-  PROMTAIL_TARGET_LABEL="changeMe_container_name"  #自定义，日志推送标签，按服务器作用或主机名区分
+  
+  PROMTAIL_TARGET_LABEL="changeMe_container_name"  #自定义，日志推送标签，按服务器作用或主机名区分,必须要改。不然日志系统标签会重复
+  
   WEBHOOK_CONFIG=""  #发送告警URL
   
 * install.sh
