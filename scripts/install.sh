@@ -253,7 +253,7 @@ install_grafana() {
   if check_container_exists $name; then
     if prompt_for_action $name; then
       if check_port_conflict $port; then
-        port=$(prompt_for_port "Grafana" $port)
+        port=$(prompt_for_port "$name" $port)
           update_env_var "GRAFANA_PORT" "$port"
           update_env
       fi
@@ -264,7 +264,7 @@ install_grafana() {
     fi
   else
     if check_port_conflict $port; then
-      port=$(prompt_for_port "Grafana" $port)
+      port=$(prompt_for_port "$name" $port)
         update_env_var "GRAFANA_PORT" "$port"
         update_env
     fi
@@ -280,7 +280,7 @@ install_prometheus() {
   if check_container_exists $name; then
     if prompt_for_action $name; then
       if check_port_conflict $port; then
-        port=$(prompt_for_port "Prometheus" $port)
+        port=$(prompt_for_port "$name" $port)
           update_env_var "PROMETHEUS_PORT" "$port"
           update_env
       fi
@@ -292,7 +292,7 @@ install_prometheus() {
     fi
   else
     if check_port_conflict $port; then
-      port=$(prompt_for_port "Prometheus" $port)
+      port=$(prompt_for_port "$name" $port)
         update_env_var "PROMETHEUS_PORT" "$port"
         update_env
     fi
@@ -366,7 +366,7 @@ install_node_exporter() {
     fi
   else
     if check_port_conflict $port; then
-      port=$(prompt_for_port "Node Exporter" $port)
+      port=$(prompt_for_port "$name" $port)
     fi
     echo "正在安装 Node Exporter..."
       run_docker_compose $name
@@ -380,7 +380,7 @@ install_cadvisor() {
   if check_container_exists $name; then
     if prompt_for_action $name; then
       if check_port_conflict $port; then
-        port=$(prompt_for_port "cAdvisor" $port)
+        port=$(prompt_for_port "$name" $port)
           update_env_var "CADVISOR_PORT" "$port"
           update_env
       fi
@@ -391,7 +391,7 @@ install_cadvisor() {
     fi
   else
     if check_port_conflict $port; then
-      port=$(prompt_for_port "cAdvisor" $port)
+      port=$(prompt_for_port "$name" $port)
         update_env_var "CADVISOR_PORT" "$port"
         update_env
     fi
@@ -407,7 +407,7 @@ install_alertmanager() {
   if check_container_exists $name; then
     if prompt_for_action $name; then
       if check_port_conflict $port; then
-        port=$(prompt_for_port "Alertmanager" $port)
+        port=$(prompt_for_port "$name" $port)
           update_env_var "ALERTMANAGER_PORT" "$port"
           update_env
       fi
@@ -419,7 +419,7 @@ install_alertmanager() {
     fi
   else
     if check_port_conflict $port; then
-      port=$(prompt_for_port "Alertmanager" $port)
+      port=$(prompt_for_port "$name" $port)
         update_env_var "ALERTMANAGER_PORT" "$port"
         update_env
     fi
