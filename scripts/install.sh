@@ -1,9 +1,19 @@
 #!/bin/bash
 
 # 加载 .env 文件中的环境变量
+update_env() {
 if [ -f .env ]; then
   export $(grep -v '^#' .env | xargs)
 fi
+}
+
+# 更新 .env 文件中的指定变量
+update_env_var() {
+  local var_name=$1
+  local new_value=$2
+  echo "更新变量: $var_name 到新值: $new_value"
+  sed -i "s/^$var_name=\".*\"/$var_name=\"$new_value\"/g" .env
+}
 
 # 显示进度条的函数
 show_progress() {
@@ -21,7 +31,6 @@ show_progress() {
 
 # 提取内网 IP 地址
 #LOKI_HOST=$(hostname -I | awk '{print $1}')
-
 
 # 检查容器是否存在
 check_container_exists() {
@@ -63,7 +72,6 @@ prompt_for_port() {
   local default_port=$2
   local new_port
 
-#  echo "端口 $default_port 已被占用。请输入新的端口号（当前端口: $default_port）："
   read -e -p "检测到端口冲突,输入新的端口号(当前端口: $default_port): " new_port
   echo "$new_port"
 }
@@ -91,7 +99,8 @@ prompt_for_action() {
     [nN])
       remove_container $name
       if check_port_conflict $port; then
-      port=$(prompt_for_port "Grafana" $port)
+#      port=$(prompt_for_port "Grafana" $port)
+         return 0
       fi
       return 0
       ;;
@@ -174,7 +183,7 @@ generate_alertmanager_config() {
 receivers:
 - name: 'feishu-webhook'
   webhook_configs:
-  - url: '$WEBHOOK_CONFIG'
+  - url: '$WEBHOOK_URL'
 route:
   group_by: ['alertname','job']
   group_wait: 30s
@@ -243,19 +252,24 @@ install_grafana() {
   local port=3000
   if check_container_exists $name; then
     if prompt_for_action $name; then
+      if check_port_conflict $port; then
+        port=$(prompt_for_port "Grafana" $port)
+          update_env_var "GRAFANA_PORT" "$port"
+          update_env
+      fi
       echo "正在安装 Grafana..."
-#      docker run -d --name=grafana -p $port:3000 grafana/grafana:latest > /dev/null
-       run_docker_compose grafana
+       run_docker_compose $name
     else
       return  # 跳过安装
     fi
   else
     if check_port_conflict $port; then
       port=$(prompt_for_port "Grafana" $port)
+        update_env_var "GRAFANA_PORT" "$port"
+        update_env
     fi
     echo "正在安装 Grafana..."
-#    docker run -d --name=grafana -p $port:3000 grafana/grafana:latest > /dev/null
-     run_docker_compose grafana
+      run_docker_compose $name
   fi
 }
 
@@ -265,21 +279,26 @@ install_prometheus() {
   local port=9090
   if check_container_exists $name; then
     if prompt_for_action $name; then
+      if check_port_conflict $port; then
+        port=$(prompt_for_port "Prometheus" $port)
+          update_env_var "PROMETHEUS_PORT" "$port"
+          update_env
+      fi
       echo "正在安装 Prometheus..."
-      generate_prometheus_config
-#      docker run -d --name=prometheus -p $port:9090 -v $(pwd)/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus:latest > /dev/null
-       run_docker_compose prometheus
+        generate_prometheus_config
+        run_docker_compose $name
     else
       return  # 跳过安装
     fi
   else
     if check_port_conflict $port; then
       port=$(prompt_for_port "Prometheus" $port)
+        update_env_var "PROMETHEUS_PORT" "$port"
+        update_env
     fi
     echo "正在安装 Prometheus..."
     generate_prometheus_config
- #   docker run -d --name=prometheus -p $port:9090 -v $(pwd)/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus:latest > /dev/null
-     run_docker_compose prometheus
+      run_docker_compose $name
   fi
 }
 
@@ -289,22 +308,26 @@ install_loki() {
   local port=3100
   if check_container_exists $name; then
     if prompt_for_action $name; then
+      if check_port_conflict $port; then
+        port=$(prompt_for_port "$name" $port)
+          update_env_var "LOKI_PORT" "$port"
+          update_env
+      fi
       echo "正在安装 Loki..."
-      generate_loki_config
-  #    docker run -d --name=loki -p $port:3100 grafana/loki:latest > /dev/null
-       run_docker_compose loki
+        generate_loki_config
+        run_docker_compose $name
     else
       return  # 跳过安装
     fi
   else
     if check_port_conflict $port; then
-      port=$(prompt_for_port "Loki" $port)
-      echo $port
+      port=$(prompt_for_port "$name" $port)
+        update_env_var "LOKI_PORT" "$port"
+        update_env
     fi
     echo "正在安装 Loki..."
-    generate_loki_config
-#    docker run -d --name=loki -p $port:3100 grafana/loki:latest > /dev/null
-     run_docker_compose loki
+      generate_loki_config
+      run_docker_compose $name
   fi
 }
 
@@ -316,8 +339,7 @@ install_promtail() {
     if prompt_for_action $name; then
       echo "正在安装 Promtail..."
       generate_promtail_config
-#      docker run -d --name=promtail -v $(pwd)/promtail.yml:/etc/promtail/promtail.yml -p $port:9080 grafana/promtail:latest > /dev/null
-      run_docker_compose promtail
+        run_docker_compose $name
     else
       return  # 跳过安装
     fi
@@ -327,8 +349,7 @@ install_promtail() {
     fi
     echo "正在安装 Promtail..."
     generate_promtail_config
- #   docker run -d --name=promtail -v $(pwd)/promtail.yml:/etc/promtail/promtail.yml -p $port:9080 grafana/promtail:latest > /dev/null
-    run_docker_compose promtail
+      run_docker_compose $name
   fi
 }
 
@@ -339,8 +360,7 @@ install_node_exporter() {
   if check_container_exists $name; then
     if prompt_for_action $name; then
       echo "正在安装 Node Exporter..."
-#      docker run -d --name=node_exporter -p $port:9100 prom/node-exporter:latest > /dev/null
-      run_docker_compose node_exporter
+        run_docker_compose $name
     else
       return  # 跳过安装
     fi
@@ -349,8 +369,7 @@ install_node_exporter() {
       port=$(prompt_for_port "Node Exporter" $port)
     fi
     echo "正在安装 Node Exporter..."
-#    docker run -d --name=node_exporter -p $port:9100 prom/node-exporter:latest > /dev/null
-    run_docker_compose node_exporter
+      run_docker_compose $name
   fi
 }
 
@@ -360,19 +379,24 @@ install_cadvisor() {
   local port=8080
   if check_container_exists $name; then
     if prompt_for_action $name; then
+      if check_port_conflict $port; then
+        port=$(prompt_for_port "cAdvisor" $port)
+          update_env_var "CADVISOR_PORT" "$port"
+          update_env
+      fi
       echo "正在安装 cAdvisor..."
-#      docker run -d --name=cadvisor -p $port:8080 google/cadvisor:latest > /dev/null
-      run_docker_compose cadvisor
+        run_docker_compose $name
     else
       return  # 跳过安装
     fi
   else
     if check_port_conflict $port; then
       port=$(prompt_for_port "cAdvisor" $port)
+        update_env_var "CADVISOR_PORT" "$port"
+        update_env
     fi
     echo "正在安装 cAdvisor..."
-#    docker run -d --name=cadvisor -p $port:8080 google/cadvisor:latest > /dev/null
-    run_docker_compose cadvisor
+      run_docker_compose $name
   fi
 }
 
@@ -382,26 +406,32 @@ install_alertmanager() {
   local port=9093
   if check_container_exists $name; then
     if prompt_for_action $name; then
+      if check_port_conflict $port; then
+        port=$(prompt_for_port "Alertmanager" $port)
+          update_env_var "ALERTMANAGER_PORT" "$port"
+          update_env
+      fi
       echo "正在安装 Alertmanager..."
       generate_alertmanager_config
-      run_docker_compose alertmanager
+      run_docker_compose $name
     else
       return  # 跳过安装
     fi
   else
     if check_port_conflict $port; then
       port=$(prompt_for_port "Alertmanager" $port)
+        update_env_var "ALERTMANAGER_PORT" "$port"
+        update_env
     fi
     echo "正在安装 Alertmanager..."
-#    docker run -d --name=cadvisor -p $port:8080 google/cadvisor:latest > /dev/null
-    generate_alertmanager_config
-    run_docker_compose alertmanager
+      generate_alertmanager_config
+      run_docker_compose $name
   fi
 }
 
 # 显示菜单
 show_menu() {
-  echo "请选择要安装的组件（可以使用空格分隔多个选项）："
+  echo "请选择要安装的组件(可以使用空格分隔多个选项): "
   echo "1. Grafana(监控可视化平台)"
   echo "2. Prometheus(数据收集)"
   echo "3. Loki(日志存储)"
@@ -416,6 +446,7 @@ show_menu() {
 main() {
   check_docker_compose_file
   show_menu
+  update_env
   read -e -p "输入选项: " -a choices
 
   # 设置总进度

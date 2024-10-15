@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
     user: '0'
     ports:
-      - 3100:3100
+      - ${LOKI_PORT:-3100}:3100
     command: -config.file=/etc/loki/loki-config.yaml
     volumes:
       - ./loki-config:/etc/loki
